@@ -1,4 +1,31 @@
-fn base64_as_ascii(b: u8) -> char {
+
+pub fn hex_to_base64(input: String) -> String {
+    let ascii_base64 = hex_bytes_to_base64(ascii_hex_to_bytes(input))
+        .iter()
+        .map(base64_as_ascii)
+        .collect::<String>();
+
+    // Pad the ascii output if needed
+    let last_chunk = ascii_base64.len() % 4;
+    if last_chunk > 0 {
+        // Should be ok as the + operator will steal the buffer from left side
+        ascii_base64 + &str::repeat("=", 4 - last_chunk)
+    } else {
+        ascii_base64
+    }
+}
+
+fn ascii_hex_to_bytes(input: String) -> Vec<u8> {
+    (0..input.len())
+        .step_by(2)
+        .map(|i| match u8::from_str_radix(&input[i..i + 2], 16) {
+            Ok(res) => res,
+            Err(e) => panic!("Invalid hex pair value. Error: {:?}", e),
+        })
+        .collect()
+}
+
+fn base64_as_ascii(b: &u8) -> char {
     let res = match b {
         0..=25 => 'A' as u8 + b,
         26..=51 => 'a' as u8 + b - 26,
@@ -10,44 +37,31 @@ fn base64_as_ascii(b: u8) -> char {
     res as char
 }
 
-pub fn hex_to_base64(input: String) -> String {
-    let decoded_hex_bytes: Vec<u8> = (0..input.len())
-        .step_by(2)
-        .map(|i| match u8::from_str_radix(&input[i..i + 2], 16) {
-            Ok(res) => res,
-            Err(_) => panic!("err"),
-        })
-        .collect();
+pub fn hex_bytes_to_base64(input: Vec<u8>) -> Vec<u8> {
+    let mut res: Vec<u8> =
+        Vec::with_capacity(4 * (input.len() / 3 + usize::from(input.len() % 3 != 0)));
 
-    let res_capacity = decoded_hex_bytes.len() / 3 + usize::from(decoded_hex_bytes.len() % 3 != 0);
-    let res_capacity = res_capacity * 4;
-    let mut res = String::with_capacity(res_capacity);
-
-    let exact_chunks = decoded_hex_bytes.chunks_exact(3);
+    let exact_chunks = input.chunks_exact(3);
     let remainder = exact_chunks.remainder();
     for chunk in exact_chunks {
-        res.push(base64_as_ascii(chunk[0] >> 2));
+        res.push(chunk[0] >> 2);
 
-        res.push(base64_as_ascii(0b00111111 & (chunk[0] << 4 | chunk[1] >> 4)));
+        res.push(0b00111111 & (chunk[0] << 4 | chunk[1] >> 4));
 
-        res.push(base64_as_ascii(0b00111111 & (chunk[1] << 2 | chunk[2] >> 6)));
+        res.push(0b00111111 & (chunk[1] << 2 | chunk[2] >> 6));
 
-        res.push(base64_as_ascii(0b00111111 & chunk[2]));
+        res.push(0b00111111 & chunk[2]);
     }
 
     match remainder {
         [x] => {
-            // todo use similar masks
-            res.push(base64_as_ascii(x >> 2));
-            res.push(base64_as_ascii((0b11 & x) << 4));
-            res.push_str("==");
+            res.push(x >> 2);
+            res.push(0b00110000 & x << 4);
         }
         [x, y] => {
-            res.push(base64_as_ascii(x >> 2));
-            let mask = y >> 4;
-            res.push(base64_as_ascii((0b11 & x) << 4 | mask));
-            res.push(base64_as_ascii((0b1111 & y) << 2));
-            res.push('=');
+            res.push(x >> 2);
+            res.push(0b00111111 & (x << 4 | y >> 4));
+            res.push(0b00111100 & y << 2);
         }
         _ => {}
     }
@@ -61,6 +75,7 @@ mod tests {
 
     #[test]
     fn it_works() {
+        assert_eq!(hex_to_base64(String::from("")), "");
         assert_eq!(hex_to_base64(String::from("4d616e")), "TWFu");
         assert_eq!(hex_to_base64(String::from("4d61")), "TWE=");
         assert_eq!(hex_to_base64(String::from("4d")), "TQ==");
