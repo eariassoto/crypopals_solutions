@@ -10,29 +10,6 @@ fn base64_as_ascii(b: u8) -> char {
     res as char
 }
 
-fn hex_chunk_to_base64(x: &[u8]) -> String {
-    assert!(x.len() > 0);
-    let mut values: Vec<u8> = vec![];
-    // First value is guaranteed, only depends on the first byte
-    values.push(x[0] >> 2);
-    // Second value depends on the first byte, and optionally on the second byte
-    let mask = if x.len() > 1 { x[1] >> 4 } else { 0 };
-    values.push((0b11 & x[0]) << 4 | mask);
-
-    if x.len() > 1 {
-        // Third value depends on the second byte, and optionally on the third byte
-        let mask = if x.len() > 2 { x[2] >> 6 } else { 0 };
-        values.push((0b1111 & x[1]) << 2 | mask);
-    }
-    if x.len() > 2 {
-        // Fourth values depends only on the third byte
-        values.push(0b111111 & x[2]);
-    }
-
-    let a_string: String = values.into_iter().map(base64_as_ascii).collect();
-    format!("{:=<width$}", a_string, width = 4)
-}
-
 pub fn hex_to_base64(input: String) -> String {
     let decoded_hex_bytes: Vec<u8> = (0..input.len())
         .step_by(2)
@@ -42,9 +19,40 @@ pub fn hex_to_base64(input: String) -> String {
         })
         .collect();
 
-    decoded_hex_bytes
-        .chunks(3)
-        .fold("".to_string(), |acc, x| acc + &hex_chunk_to_base64(x))
+    let res_capacity = decoded_hex_bytes.len() / 3 + usize::from(decoded_hex_bytes.len() % 3 != 0);
+    let res_capacity = res_capacity * 4;
+    let mut res = String::with_capacity(res_capacity);
+
+    let exact_chunks = decoded_hex_bytes.chunks_exact(3);
+    let remainder = exact_chunks.remainder();
+    for chunk in exact_chunks {
+        res.push(base64_as_ascii(chunk[0] >> 2));
+
+        res.push(base64_as_ascii(0b00111111 & (chunk[0] << 4 | chunk[1] >> 4)));
+
+        res.push(base64_as_ascii(0b00111111 & (chunk[1] << 2 | chunk[2] >> 6)));
+
+        res.push(base64_as_ascii(0b00111111 & chunk[2]));
+    }
+
+    match remainder {
+        [x] => {
+            // todo use similar masks
+            res.push(base64_as_ascii(x >> 2));
+            res.push(base64_as_ascii((0b11 & x) << 4));
+            res.push_str("==");
+        }
+        [x, y] => {
+            res.push(base64_as_ascii(x >> 2));
+            let mask = y >> 4;
+            res.push(base64_as_ascii((0b11 & x) << 4 | mask));
+            res.push(base64_as_ascii((0b1111 & y) << 2));
+            res.push('=');
+        }
+        _ => {}
+    }
+
+    res
 }
 
 #[cfg(test)]
