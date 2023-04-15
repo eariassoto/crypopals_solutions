@@ -60,5 +60,18 @@ mod tests {
             fixed_xor(vec![0x1c, 0x01, 0x11, 0x00], vec![0x68, 0x69, 0x74, 0x20]),
             vec![0x74, 0x68, 0x65, 0x20]
         );
+
+        assert_eq!(
+            fixed_xor(decode(String::from("")), decode(String::from(""))),
+            decode(String::from(""))
+        );
+
+        assert_eq!(
+            fixed_xor(
+                decode(String::from("1c0111001f010100061a024b53535009181c")),
+                decode(String::from("686974207468652062756c6c277320657965"))
+            ),
+            decode(String::from("746865206b696420646f6e277420706c6179"))
+        );
     }
 }
