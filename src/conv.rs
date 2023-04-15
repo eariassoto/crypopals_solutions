@@ -1,4 +1,4 @@
-use crate::{hex, base64};
+use crate::{base64, hex};
 
 pub fn hex_to_base64(input: String) -> String {
     let input_bytes = hex::decode(input);
@@ -20,4 +20,3 @@ mod tests {
         );
     }
 }
-

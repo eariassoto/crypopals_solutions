@@ -1,3 +1,3 @@
 pub mod base64;
-pub mod hex;
 pub mod conv;
+pub mod hex;
