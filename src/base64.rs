@@ -5,7 +5,8 @@ const BASE64_CHARS: [char; 64] = [
     '5', '6', '7', '8', '9', '+', '/',
 ];
 
-pub fn encode(input: Vec<u8>) -> String {
+pub fn encode<T: AsRef<[u8]>>(input: T) -> String {
+    let input = input.as_ref();
     let mut res = String::with_capacity(4 * (input.len() / 3 + usize::from(input.len() % 3 != 0)));
 
     let exact_chunks = input.chunks_exact(3);

@@ -2,22 +2,38 @@ const HEX_CHARS: [char; 16] = [
     '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f',
 ];
 
-pub fn decode(input: String) -> Vec<u8> {
+pub fn decode<T: AsRef<[u8]>>(input: T) -> Vec<u8> {
     // TODO: handle errors properly
+    let input = input.as_ref();
     if input.len() % 2 == 1 {
         panic!("Invalid input.")
     }
 
     (0..input.len())
         .step_by(2)
-        .map(|i| match u8::from_str_radix(&input[i..i + 2], 16) {
-            Ok(res) => res,
-            Err(e) => panic!("Invalid hex pair value. Error: {:?}", e),
+        .map(|i| match &input[i..i + 2] {
+            [high_nibble @ b'0'..=b'9', low_nibble @ b'0'..=b'9'] => {
+                (high_nibble - b'0') << 4 | (low_nibble - b'0')
+            }
+            [high_nibble @ b'a'..=b'f', low_nibble @ b'0'..=b'9']
+            | [high_nibble @ b'A'..=b'F', low_nibble @ b'0'..=b'9'] => {
+                (high_nibble - b'a' + 10) << 4 | (low_nibble - b'0')
+            }
+            [high_nibble @ b'0'..=b'9', low_nibble @ b'a'..=b'f']
+            | [high_nibble @ b'0'..=b'9', low_nibble @ b'A'..=b'F'] => {
+                (high_nibble - b'0') << 4 | (low_nibble - b'a' + 10)
+            }
+            [high_nibble @ b'a'..=b'f', low_nibble @ b'a'..=b'f']
+            | [high_nibble @ b'A'..=b'F', low_nibble @ b'A'..=b'F'] => {
+                (high_nibble - b'a' + 10) << 4 | (low_nibble - b'a' + 10)
+            }
+            _ => panic!("Invalid hex pair value."),
         })
         .collect()
 }
 
-pub fn encode(input: Vec<u8>) -> String {
+pub fn encode<T: AsRef<[u8]>>(input: T) -> String {
+    let input = input.as_ref();
     let mut res = String::with_capacity(input.len());
     for byte in input {
         res.push(HEX_CHARS[(byte >> 4) as usize]);
@@ -26,12 +42,18 @@ pub fn encode(input: Vec<u8>) -> String {
     res
 }
 
-pub fn fixed_xor(a: Vec<u8>, b: Vec<u8>) -> Vec<u8> {
+pub fn fixed_xor<T: AsRef<[u8]>>(a: T, b: T) -> Vec<u8> {
+    let a = a.as_ref();
+    let b = b.as_ref();
     if a.len() != b.len() {
         panic!("Invalid input.");
     }
 
     a.iter().zip(b.iter()).map(|x| x.0 ^ x.1).collect()
+}
+
+pub fn xor_against<T: AsRef<[u8]>>(input: T, key: u8) -> Vec<u8> {
+    input.as_ref().iter().map(|x| x ^ key).collect()
 }
 
 #[cfg(test)]
