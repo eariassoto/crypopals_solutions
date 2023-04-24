@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
 
-use cryptopals::hex;
+use cryptopals::{hex, xor::Xor};
 
 fn get_letter_frequency(input: &[u8]) -> [f64; 26] {
     let mut res: [f64; 26] = [0.0; 26];
@@ -42,7 +42,7 @@ impl PartialOrd for Score {
 fn get_top_scores(input: &String) -> Vec<Score> {
     ('A'..='Z')
         .map(|letter| {
-            let xored = hex::xor_against(hex::decode(&input), letter as u8);
+            let xored = hex::decode(&input).xor_byte(letter as u8);
 
             // create a letter frequency map with the top letters
             let letter_freq = get_letter_frequency(&xored);

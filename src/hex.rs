@@ -42,20 +42,6 @@ pub fn encode<T: AsRef<[u8]>>(input: T) -> String {
     res
 }
 
-pub fn fixed_xor<T: AsRef<[u8]>>(a: T, b: T) -> Vec<u8> {
-    let a = a.as_ref();
-    let b = b.as_ref();
-    if a.len() != b.len() {
-        panic!("Invalid input.");
-    }
-
-    a.iter().zip(b.iter()).map(|x| x.0 ^ x.1).collect()
-}
-
-pub fn xor_against<T: AsRef<[u8]>>(input: T, key: u8) -> Vec<u8> {
-    input.as_ref().iter().map(|x| x ^ key).collect()
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -68,32 +54,6 @@ mod tests {
         assert_eq!(
             decode(String::from("deadbeef")),
             vec![0xde, 0xad, 0xbe, 0xef]
-        );
-    }
-
-    #[test]
-    fn fixed_xor_test() {
-        assert_eq!(
-            fixed_xor(vec![0xde, 0xad, 0xbe, 0xef], vec![0xde, 0xad, 0xbe, 0xef]),
-            vec![0x00, 0x00, 0x00, 0x00]
-        );
-
-        assert_eq!(
-            fixed_xor(vec![0x1c, 0x01, 0x11, 0x00], vec![0x68, 0x69, 0x74, 0x20]),
-            vec![0x74, 0x68, 0x65, 0x20]
-        );
-
-        assert_eq!(
-            fixed_xor(decode(String::from("")), decode(String::from(""))),
-            decode(String::from(""))
-        );
-
-        assert_eq!(
-            fixed_xor(
-                decode(String::from("1c0111001f010100061a024b53535009181c")),
-                decode(String::from("686974207468652062756c6c277320657965"))
-            ),
-            decode(String::from("746865206b696420646f6e277420706c6179"))
         );
     }
 }
