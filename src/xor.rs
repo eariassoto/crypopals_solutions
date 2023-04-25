@@ -14,7 +14,7 @@ impl<T: AsRef<[u8]>> Xor<T> for T {
         if a.len() != b.len() {
             panic!("Invalid input.");
         }
-    
+
         a.iter().zip(b.iter()).map(|x| x.0 ^ x.1).collect()
     }
 }
@@ -33,17 +33,17 @@ mod tests {
     #[test]
     fn xor_pad_test() {
         let a: Vec<u8> = vec![0xde, 0xad, 0xbe, 0xef];
-        let b: Vec<u8> =  vec![0xde, 0xad, 0xbe, 0xef];
+        let b: Vec<u8> = vec![0xde, 0xad, 0xbe, 0xef];
         let expected: Vec<u8> = vec![0x00, 0x00, 0x00, 0x00];
         assert_eq!(expected, a.xor_pad(&b));
 
         let a: Vec<u8> = vec![0x1c, 0x01, 0x11, 0x00];
-        let b: Vec<u8> =  vec![0x68, 0x69, 0x74, 0x20];
+        let b: Vec<u8> = vec![0x68, 0x69, 0x74, 0x20];
         let expected: Vec<u8> = vec![0x74, 0x68, 0x65, 0x20];
         assert_eq!(expected, a.xor_pad(&b));
 
         let a: Vec<u8> = vec![];
-        let b: Vec<u8> =  vec![];
+        let b: Vec<u8> = vec![];
         let expected: Vec<u8> = vec![];
         assert_eq!(expected, a.xor_pad(&b));
     }
