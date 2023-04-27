@@ -1,4 +1,4 @@
-use cryptopals::{hex, rmse::Rmse, xor::Xor};
+use cryptopals::{hex, rmse::Rmse, xor_pad::XorPad};
 
 // Frequencies (a-z) based on the Corpus of Contemporary American English (COCA) data set.
 const EXPECTED_FREQUENCIES: [f64; 26] = [
@@ -29,8 +29,8 @@ fn main() {
         String::from("1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736");
 
     let input = hex::decode(&input);
-    let result = (0x00..=0xFF)
-        .map(|b| input.xor_byte(b as u8))
+    let result = (0u8..=0xffu8)
+        .map(|b| input.pad_with_byte(b))
         .filter(|xored| {
             !xored
                 .iter()
