@@ -1,4 +1,4 @@
-use crate::rmse::Rmse;
+use crate::error_metrics::ErrorMetrics;
 
 // Frequencies (a-z) based on the Corpus of Contemporary American English (COCA) data set.
 const EXPECTED_FREQUENCIES: [f64; 26] = [
@@ -26,6 +26,6 @@ fn get_letter_frequency<T: AsRef<[u8]>>(input: &T) -> [f64; 26] {
 
 pub fn score_letter_frequency<T: AsRef<[u8]>>(input: &T) -> f64 {
     EXPECTED_FREQUENCIES
-        .root_mean_square_dev(&get_letter_frequency(input))
+        .mean_absolute_error(&get_letter_frequency(input))
         .unwrap()
 }
