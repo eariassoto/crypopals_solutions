@@ -1,4 +1,4 @@
-use cryptopals::{hex, letter_freq::score_letter_frequency, xor_pad::XorPad};
+use cryptopals::{hex, xor_pad::XorPad, text_score::score_text};
 
 fn main() {
     let input =
@@ -12,18 +12,13 @@ fn main() {
                 .any(|&c| !c.is_ascii() || (c.is_ascii_control() && c != b'\n'))
         })
         .map(|(key, cipher)| {
-            let score = score_letter_frequency(&cipher);
+            let (cipher, score) = score_text(String::from_utf8(cipher).unwrap());
             (key, cipher, score)
         })
-        .collect::<Vec<(u8, Vec<u8>, f64)>>();
+        .collect::<Vec<(u8, String, f64)>>();
 
     for (key, cipher, score) in &valid_ascii_ciphers {
-        println!(
-            "[{:#04x}]. Cipher: {:?}. Score: {:?}",
-            key,
-            std::str::from_utf8(&cipher).unwrap(),
-            score,
-        );
+        println!("[{:#04x}]. Cipher: {:?}. Score: {:?}", key, cipher, score,);
     }
 
     valid_ascii_ciphers.sort_by(|(_, _, a), (_, _, b)| a.partial_cmp(b).unwrap());
@@ -31,9 +26,7 @@ fn main() {
     match valid_ascii_ciphers.first() {
         Some((key, cipher, score)) => println!(
             "Match found for key: [{:#04x}]. Cipher: {:?}. Score: {:?}",
-            key,
-            std::str::from_utf8(&cipher).unwrap(),
-            score,
+            key, cipher, score,
         ),
         None => {}
     };
