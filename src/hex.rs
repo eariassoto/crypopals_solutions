@@ -3,13 +3,8 @@ const HEX_CHARS: [char; 16] = [
 ];
 
 pub fn decode<T: AsRef<[u8]>>(input: T) -> Vec<u8> {
-    // TODO: handle errors properly
     let input = input.as_ref();
-    if input.len() % 2 == 1 {
-        panic!("Invalid input.")
-    }
-
-    (0..input.len())
+    let mut res: Vec<u8> = (0..input.len() - 1)
         .step_by(2)
         .map(|i| match &input[i..i + 2] {
             [high_nibble @ b'0'..=b'9', low_nibble @ b'0'..=b'9'] => {
@@ -17,19 +12,30 @@ pub fn decode<T: AsRef<[u8]>>(input: T) -> Vec<u8> {
             }
             [high_nibble @ b'a'..=b'f', low_nibble @ b'0'..=b'9']
             | [high_nibble @ b'A'..=b'F', low_nibble @ b'0'..=b'9'] => {
-                (high_nibble - b'a' + 10) << 4 | (low_nibble - b'0')
+                (high_nibble.to_ascii_lowercase() - b'a' + 10) << 4 | (low_nibble - b'0')
             }
             [high_nibble @ b'0'..=b'9', low_nibble @ b'a'..=b'f']
             | [high_nibble @ b'0'..=b'9', low_nibble @ b'A'..=b'F'] => {
-                (high_nibble - b'0') << 4 | (low_nibble - b'a' + 10)
+                (high_nibble - b'0') << 4 | (low_nibble.to_ascii_lowercase() - b'a' + 10)
             }
             [high_nibble @ b'a'..=b'f', low_nibble @ b'a'..=b'f']
             | [high_nibble @ b'A'..=b'F', low_nibble @ b'A'..=b'F'] => {
-                (high_nibble - b'a' + 10) << 4 | (low_nibble - b'a' + 10)
+                (high_nibble.to_ascii_lowercase() - b'a' + 10) << 4
+                    | (low_nibble.to_ascii_lowercase() - b'a' + 10)
             }
             _ => panic!("Invalid hex pair value."),
         })
-        .collect()
+        .collect();
+    if input.len() % 2 == 1 {
+        match &input.last().unwrap() {
+            b @ b'0'..=b'9' => res.push(*b - b'0'),
+            b @ b'a'..=b'f' | b @ b'A'..=b'F' => {
+                res.push((b.to_ascii_lowercase() - b'a' + 10) << 4)
+            }
+            _ => panic!("Invalid hex pair value."),
+        }
+    }
+    res
 }
 
 pub fn encode<T: AsRef<[u8]>>(input: T) -> String {
