@@ -95,4 +95,3 @@ mod tests {
         assert_eq!(37, hamming_distance(b"this is a test", b"wokka wokka!!!"));
     }
 }
-
