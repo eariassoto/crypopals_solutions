@@ -49,6 +49,11 @@ impl<T: AsRef<[u8]>> XorPad<T> for T {
     }
 }
 
+pub fn hamming_distance<T: AsRef<[u8]>>(a: T, b: T) -> u32 {
+    let bits = a.as_ref().pad_with_key(&b.as_ref());
+    bits.iter().fold(0, |acc, b| acc + b.count_ones())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -84,4 +89,10 @@ mod tests {
         let key: Vec<u8> = vec![];
         text.pad_with_key(&key);
     }
+
+    #[test]
+    fn hamming_distance_test() {
+        assert_eq!(37, hamming_distance(b"this is a test", b"wokka wokka!!!"));
+    }
 }
+
