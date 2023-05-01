@@ -23,7 +23,7 @@ fn can_do_fixed_xor() {
 #[test]
 fn can_break_single_byte_cipher() {
     let input = b"1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736";
-    let result = break_single_byte(hex::decode(&input));
+    let result = break_single_byte(&hex::decode(&input));
     assert_eq!(
         Some((0x58, String::from("Cooking MC's like a pound of bacon"))),
         result
@@ -53,7 +53,7 @@ fn can_detect_single_byte_cipher() {
     let inputs = include_str!("cipher_data.txt");
     let match_found = inputs
         .lines()
-        .filter_map(|input| break_single_byte(hex::decode(&input)))
+        .filter_map(|input| break_single_byte(&hex::decode(&input)))
         .find(|result| *result == (0x35, String::from("Now that the party is jumping\n")));
 
     assert!(match_found.is_some());

@@ -1,6 +1,6 @@
 use crate::{text_score::score_text, xor_pad::XorPad};
 
-pub fn break_single_byte(input: Vec<u8>) -> Option<(u8, String)> {
+pub fn break_single_byte(input: &[u8]) -> Option<(u8, String)> {
     let all_ciphers = (0u8..=0xffu8).map(|b| (b, input.pad_with_byte(b)));
     let mut valid_ascii_ciphers = all_ciphers
         .filter(|(_, cipher)| {

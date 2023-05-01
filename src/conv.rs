@@ -1,4 +1,4 @@
-use crate::{my_base64, hex};
+use crate::{hex, my_base64};
 
 pub fn hex_to_base64(input: String) -> String {
     let input_bytes = hex::decode(input);
