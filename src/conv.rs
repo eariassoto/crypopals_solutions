@@ -1,8 +1,8 @@
-use crate::{base64, hex};
+use crate::{my_base64, hex};
 
 pub fn hex_to_base64(input: String) -> String {
     let input_bytes = hex::decode(input);
-    base64::encode(input_bytes)
+    my_base64::encode(input_bytes)
 }
 
 #[cfg(test)]
